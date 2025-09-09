@@ -1,6 +1,6 @@
 ---
 title: "【入門】OpenAI Codex CLIでリファクタリングしてみた"
-emoji: "👍"
+emoji: "🥋"
 type: "tech"
 topics: ["vibecoding", "OpenAI", "codexcli", "zennfes2025ai", "agent"]
 published: true
@@ -21,7 +21,6 @@ OpenAIが開発したコーディングエージェントです。公開自体�
 似たようなサービスとしてClaude CodeやGemini CLIがあります。
 
 :::details コーディングエージェントとは
-
 自然言語で指示をすることで、コーディングやテスト、デバッグといった作業を自律的に行ってくれる生成AIのことを指します。
 
 :::
