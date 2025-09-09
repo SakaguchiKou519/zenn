@@ -1,5 +1,5 @@
 ---
-title: "💻 OpenAI Codexでリファクタリングしてみた"
+title: "【入門】OpenAI Codex CLIでリファクタリングしてみた"
 emoji: "👍"
 type: "tech"
 topics: ["vibecoding", "OpenAI", "codexcli", "zennfes2025ai", "agent"]
