@@ -35,12 +35,12 @@ https://developers.openai.com/codex/cli/?utm_source=chatgpt.com
 #### 必須
 
 - ChatGPTアカウント(有料プラン利用orAPI利用)
+- Node.js
+- npm
 
 #### 任意
 
 - Docker(linux)
-- Node.js
-- npm
 
 利用方法は簡単で、Nodeのパッケージマネージャが使える環境でコマンドを実行するだけです。macの場合Homebrewでのインストールが対応しています。
 
