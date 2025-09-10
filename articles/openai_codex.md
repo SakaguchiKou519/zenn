@@ -78,9 +78,9 @@ npm install -g @openai/codex
 勝手にcommitやsudoなどをされると困るので、2番を選択しました。
 これにて利用の準備は完了です。
 
-## ローカルLLMを利用する場合
+## CodexでローカルLLMを利用する場合
 
-Docker環境でローカルLLMを利用する場合は`~/.codex/config.toml`にモデル設定を書き込む必要があります。
+CodexでローカルLLMを利用する場合は`~/.codex/config.toml`にモデル設定を書き込む必要があります。
 
 :::details config.tomlとは
 エージェントの設定ファイルで、MCPとの連携やデスクトップ通知、推論モードの設定などが可能になります。
