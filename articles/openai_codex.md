@@ -44,6 +44,8 @@ https://developers.openai.com/codex/cli/?utm_source=chatgpt.com
 
 - Docker(linux)
 
+### 利用方法
+
 利用方法は簡単で、Nodeのパッケージマネージャが使える環境でコマンドを実行するだけです。macの場合Homebrewでのインストールに対応しています。
 
 ```bash
