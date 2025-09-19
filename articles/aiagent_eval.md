@@ -48,7 +48,7 @@ https://zenn.dev/secondselection/articles/ai_articles_generator
 
 -----
 
-![alt text](/images/mulch.png)
+![alt text](/images/multi.png)
 ディベートシステムを構築するにあたって司会者、テレビ局の社長、人気配信者、消費者の
 4つのエージェントを用意しました。
 司会者が進行をして、他のエージェントが立場に沿ったディベートをすることを期待します。
