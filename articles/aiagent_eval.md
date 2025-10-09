@@ -4,7 +4,7 @@ emoji: "📝"
 type: "tech"
 topics: ["ai", "aiエージェント", "autogen", "zennfes2025ai", "評価"]
 published: true
-published_at: 2025-10-13 06:00
+published_at: 2025-10-14 06:00
 publication_name: "secondselection"
 ---
 
