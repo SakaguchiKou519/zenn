@@ -178,7 +178,7 @@ ftpユーザー、フォルダがない場合は次のようなエラーが発�
 ```python
 # upload
 with open('test.txt', "rb") as f:
-    (ftp.storbinary('STOR test.txt', f))
+    ftp.storbinary('STOR test.txt', f)
 
 # download
 with open('test.txt', 'wb') as f:
