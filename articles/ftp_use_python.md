@@ -2,9 +2,9 @@
 title: "DockerとPythonでFTPサーバーを構築し接続する方法【匿名ユーザー対応】"
 emoji: "🗄️"
 type: "tech"
-topics: ["FTP", "Docker", "Linux", "Python"]
+topics: ["ftp", "docker","dockercompose", "linux", "python"]
 published: true
-published_at: 2025-12-01 06:00
+published_at: 2025-11-17 06:00
 publication_name: "secondselection"
 ---
 
