@@ -1,6 +1,6 @@
 ---
-title: "FTPサーバを立てて、Pythonで接続する方法"
-emoji: "🦾"
+title: "DockerとPythonでFTPサーバーを構築し接続する方法【匿名ユーザー対応】"
+emoji: "🗄️"
 type: "tech"
 topics: ["FTP", "Docker", "Linux", "Python"]
 published: true
