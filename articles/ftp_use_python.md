@@ -98,7 +98,7 @@ ftpd_server:
       - "21:21"
       - "30000-30009:30000-30009"
     volumes: 
-      - "./data:/home/username/"
+      - "./data:/home/testuser"
       - "./passwd:/etc/pure-ftpd/passwd"
     environment:
       PUBLICHOST: "localhost"
@@ -135,13 +135,12 @@ FTPクライアントはいくつか選択肢がありますが、本記事で�
 接続確認用のコードは以下です。
 
 ```python
+# 匿名でログイン
 import ftplib
 
 ftp = ftplib.FTP()
 ftp.connect('localhost', port=21, timeout=60)
 ftp.login()
-# 一行でログインまで済ませたい場合
-# ftp = ftplib.FTP('localhost','testuser','test123')
 print("サーバーメッセージ:", ftp.getwelcome())
 ftp.quit()
 ```
@@ -190,7 +189,7 @@ ftp.delete('test.txt')
 
 その他コードは下記ソースをご参照ください。
 
-https://zenn.dev/furimura/articles/a2fb4e91522f2b#python-ftplib%E3%81%AEftp%E6%93%8D%E4%BD%9C
+https://zenn.dev/furimura/articles/a2fb4e91522f2b#python-ftplib%E3%81%AEftp%E6%93%8D%E4%BD%9C  
 https://docs.python.org/ja/3/library/ftplib.html
 
 ## おわりに
