@@ -2,7 +2,7 @@
 title: "AutoGen × GraphRAG で類似レポート検索を試してみた"
 emoji: "🤖"
 type: "tech"
-topics: ["Autogen", "RAG","GraphRAG", "LLM", "Python"]
+topics: ["AutoGen", "RAG","GraphRAG", "LLM", "Python"]
 published: true
 published_at: 2026-03-09 06:00
 publication_name: "secondselection"
@@ -20,10 +20,10 @@ https://github.com/karthik-codex/Autogen_GraphRAG_Ollama
 
 ## 用語解説
 
-:::details Autogenとは
+:::details AutoGenとは
 Microsoftが開発したオープンソースのAIエージェント開発フレームワークです。
 
-autogenの詳細については下記記事を参照ください。
+AutoGenの詳細については下記記事を参照ください。
 
 https://zenn.dev/secondselection/articles/ai_articles_generator
 
