@@ -2,7 +2,7 @@
 title: "AutoGen × GraphRAG で類似レポート検索を試してみた"
 emoji: "🤖"
 type: "tech"
-topics: ["Microsoft", "RAG","GraphRAG", "LLM", "python"]
+topics: ["Autogen", "RAG","GraphRAG", "LLM", "Python"]
 published: true
 published_at: 2026-03-09 06:00
 publication_name: "secondselection"
