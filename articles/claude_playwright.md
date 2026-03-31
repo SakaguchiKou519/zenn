@@ -50,7 +50,7 @@ https://github.com/microsoft/playwright-mcp
 ClaudeがMCPサーバーを介してクリック等のPlaywright機能を利用するイメージです。
 MCPサーバーとして提供されていることで、AIはPlaywrightのAPIを直接書くことなく、ツール名とパラメータを指定するだけでブラウザ操作ができます。
 
-![alt text](../images/claude_playwright/playwright_image.png)
+![alt text](/images/claude_playwright/playwright_image.png)
 
 ## 環境構成
 
