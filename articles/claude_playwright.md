@@ -22,7 +22,7 @@ published: false
 
 ## 解決手段
 
-Claude CodeとPlaywrightMCPを組み合わせて、自動でソース更新をする。
+Claude CodeとPlaywright MCPを組み合わせて、自動でソース更新をする。
 最終的には自動更新スクリプトを実行することで完結します。
 
 ## Playwright とは
@@ -47,7 +47,10 @@ https://github.com/microsoft/playwright-mcp
 
 ## システムイメージ
 
-claudeがmcpでツール利用している図を作成予定。
+ClaudeがMCPサーバーを介してクリック等のPlaywright機能を利用するイメージです。
+MCPサーバーとして提供されていることで、AIはPlaywrightのAPIを直接書くことなく、ツール名とパラメータを指定するだけでブラウザ操作ができます。
+
+![alt text](../images/claude_playwright/playwright_image.png)
 
 ## 環境構成
 
@@ -105,7 +108,7 @@ Windows ブラウザ → localhost:6080 で画面確認
 
 ### Step 2: 動作確認
 
-devcontainer起動後、ClaudeCodeで確認します。
+devcontainer起動後、Claude Codeで確認します。
 
 ```bash
 /mcp
@@ -127,7 +130,7 @@ devcontainer起動後、ClaudeCodeで確認します。
 
 ## ブラウザを操作させてみる
 
-ここまでのセットが完了すると、あとはClaudeCodeに自然言語で指示するだけでブラウザを操作できます。
+ここまでのセットが完了すると、あとはClaude Codeに自然言語で指示するだけでブラウザを操作できます。
 
 `google.comを開いて`
 
@@ -137,7 +140,7 @@ devcontainer起動後、ClaudeCodeで確認します。
 
 ドキュメントの自動同期を行います。
 
-後ほど実行手順を教えるためにスクショを取らせます。
+後ほどスクリプト作成用の実行手順を教えるためにスクショを取らせます。
 
 `各操作をする度にスクショをして`
 
@@ -147,12 +150,12 @@ devcontainer起動後、ClaudeCodeで確認します。
 
 ![alt text](/images/claude_playwright/signin.png)
 
-サインインが完了するとnotebooklmにログインできます。
+サインインが完了するとNotebookLMにログインできます。
 サインイン後、ログインステータスを保存することで次回からのログインが省けますが、セキュリティにはご注意ください。
 
 ![alt text](/images/claude_playwright/notebook_top.png)
 
-`○のブックを開いて`
+`「任意のノートブック名」のブックを開いて`
 
 自動更新させたいブックを開かせます。
 
@@ -169,12 +172,12 @@ devcontainer起動後、ClaudeCodeで確認します。
 ![alt text](/images/claude_playwright/before.png)
 ![alt text](/images/claude_playwright/after.png)
 
-`ここまでの作業をplaywrightを用いて自動化して`
+`ここまでの作業をPlaywrightを用いて自動化して`
 
 すると自動更新のスクリプトが作成されますので、スクリプトを定期実行することで更新の手間が省けます。
 
 ## まとめ
 
-Claude CodeとPlaywrightMCPを利用することでNotebookLMを自動更新できることを確認しました。
+Claude CodeとPlaywright MCPを利用することでNotebookLMを自動更新できることを確認しました。
 この構成でフロント操作の自動化が出来ないかを検証して、上手くいけばスクリプトを出力させる使い方が良いかと考えます。
 検証する中で複数のnotebookを更新させましたが、10分程度エラーなしに動作していて、エージェントとしての能力が実用レベルだと感じました。
