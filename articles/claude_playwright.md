@@ -3,7 +3,9 @@ title: "DevContainerで完結！Claude Code + Playwright MCPを使ったブラ�
 emoji: "🎭"
 type: "tech"
 topics: ["claude", "playwright", "mcp", "devcontainer", "notebooklm"]
-published: false
+published: true
+published_at: 2026-04-13 06:00
+publication_name: "secondselection"
 ---
 
 ## はじめに
