@@ -1,5 +1,5 @@
 ---
-title: "DevContainerで完結！Claude Code + Playwright MCPを使ったブラウザ操作自動化の構築手順 Part2"
+title: "Claude Code + Playwright MCPで始めるレスポンシブ確認の自動化"
 emoji: "🤡"
 type: "tech"
 topics: ["claude", "playwright", "mcp", "devcontainer", "レスポンシブ"]
@@ -10,11 +10,11 @@ publication_name: "secondselection"
 
 ## はじめに
 
-Playwrightを用いて、複数ブラウザでのレスポンシブ対応を自動化したいと考えました。
+Playwrightを用いて、**複数ブラウザでのレスポンシブ対応の確認を自動化**したいと考えました。
+複数ブラウザ・複数サイズでのレイアウト確認を手動で行うのは手間がかかります。今回はそういった課題をClaude Code + Playwright MCPを利用して解決していきます。
+最終成果物は複数ブラウザで撮影をするスクリプトになります。
 
-複数ブラウザを開いて、表示レイアウトを手動で変更するのは大変です。今回はそういった課題をClaude Code + Playwright MCPを利用して解決していきます。
-
-用語等についてはこちらの記事をご参照ください。
+用語や、環境構築方法についてはこちらの記事をご参照ください。
 
 https://zenn.dev/secondselection/articles/claude_playwright
 
@@ -34,6 +34,47 @@ https://zenn.dev/secondselection/articles/claude_playwright
 - タブレット:768px*1024px
 - スマホ:390px*844px
 
+## 環境構成
+
+冒頭でご紹介した記事の構成を踏襲しています。変更点はブラウザの追加と、postCreateCommandのコマンドを別ファイルへ切り出した点です。
+設定ファイルを再掲しますが、環境構築の方法は冒頭の記事を参照ください。
+
+```json:devcontainer.json
+{
+  "name": "responsible",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "configureZshAsDefaultShell": "true",
+      "installCurl": "true",
+      "upgradePackages": "false"
+    },
+    "ghcr.io/devcontainers/features/desktop-lite:1": {}
+  },
+  "forwardPorts": [6080],
+  "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "remoteUser": "node"
+}
+```
+
+```bash:postCreateCommand.sh
+#!/bin/bash
+set -e
+
+curl -fsSL https://claude.ai/install.sh | bash
+npx playwright install chromium firefox webkit
+claude mcp add playwright npx @playwright/mcp@latest
+```
+
 ## 手順
 
 今回は弊社のHPにアクセスしてレイアウトを確認していきます。
@@ -42,27 +83,27 @@ https://zenn.dev/secondselection/articles/claude_playwright
 
 以下プロンプトは🤵マークを付与します。
 
-`🤵https://www.secondselection.com/に1920*1080でアクセスして。`
+`🤵https://www.secondselection.com/に1920px*1080pxでアクセス、撮影して。`
 
-![alt text](../images/responsible_playwright/pc.png)
+![alt text](/images/responsible_playwright/pc.png)
 
 無事にアクセス出来ていることが確認できたので、スマホ、タブレットも続けていきます。
 
-`🤵次にスマホサイズ390px*844pxでアクセスして。`
+`🤵次にスマホサイズ390px*844pxでアクセス、撮影して。`
 
-![alt text](../images/responsible_playwright/mobile.png)
+![alt text](/images/responsible_playwright/mobile.png)
 
-`🤵次タブレットサイズ768px*1024pxでアクセスして。`
+`🤵次にタブレットサイズ768px*1024pxでアクセス、撮影して。`
 
-![alt text](../images/responsible_playwright/tablet.png)
+![alt text](/images/responsible_playwright/tablet.png)
 
 `🤵ここまでの作業をPlaywrightを利用したコードに書き起こして`
 
-生成されたスクリプト
+### 生成されたスクリプト
 
 ※汎用的に利用できるよう一部修正しています。
 
-```js
+```js:fullscreenshot.js
 const { chromium } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
@@ -115,15 +156,16 @@ fs.mkdirSync(archiveDir, { recursive: true });
 
 ### 注意点
 
-動的なサイトは適宜設定が必要です。スクリプト実行時に真っ白なもの画面が撮影されました。対策としてネットワークリクエストが500ms以上発生しなくなるまで待機する`waitUntil: 'networkidle'` を各gotoに追加しています。場合によっては特定の要素が表示されるのを待つ設定が必要です。
+動的なサイトは適宜待機する設定が必要です。
+今回はスクリプト実行時に真っ白な画面が撮影されたため、ネットワークリクエストが500ms以上発生しなくなるまで待機するwaitUntil:'networkidle'を各gotoに追加しました。サイトによっては特定の要素の表示を待つ設定が別途必要になる場合があります。
+また、スクリプトを実行する際は対象サイトの利用規約を確認してください。
 
 ### 複数ブラウザ対応
 
-単一ブラウザで動作確認が出来ましたので、複数ブラウザ対応は順調に進みました。
-chromium、firefoxは順調にいきましたがsafariで失敗しました。WSL2環境ではWebKitの依存ライブラリ（libEGL, libGLESなど）が揃わないため起動できないそうです。
-必要なライブラリが多く、環境構築の難易度を考慮して、今回はスキップする仕様にしました。
+単一ブラウザで動作確認が出来ましたので、複数ブラウザ対応に進みます。
+Chromium、Firefoxは順調にいきましたがSafariで失敗しました。WSL2環境ではSafari(WebKit)の起動に必要なライブラリが多く、環境構築の難易度を考慮して今回はスキップする仕様にしました。
 
-```js
+```js:capture.js
 const { chromium, firefox, webkit } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
@@ -185,4 +227,5 @@ const browsers = [
 
 ## おわりに
 
-最終的にはchromium,firefoxのブラウザでPC、スマホ、タブレットの計6枚のスクショを自動化することが出来ました。
+最終的にはChromium、FirefoxのブラウザでPC、スマホ、タブレットの計6枚のスクショ撮影を自動化できました。URLを引数に渡すだけで動く汎用スクリプトになっているので、ぜひご活用ください。
+ClaudeCode + Playwright MCPの組み合わせはブラウザ操作全般に応用できるので、環境構築から試してみることをお勧めします。
