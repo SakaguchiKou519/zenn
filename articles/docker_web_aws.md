@@ -2,7 +2,7 @@
 title: "DockerアプリをGitHub Actions × AWS Fargateで自動デプロイしてみた"
 emoji: "🔰"
 type: "tech"
-topics: ["Docker", "AWS", "デプロイ", "devcontainer", "レスポンシブ"]
+topics: ["Docker", "AWS", "デプロイ", "CI/CD", "Github Actions"]
 published: true
 published_at: 2026-05-11 06:00
 publication_name: "secondselection"
