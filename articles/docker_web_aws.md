@@ -1,5 +1,5 @@
 ---
-title: "Dockerを活用したWebアプリ開発をしてみた"
+title: "DockerアプリをGitHub Actions × AWS Fargateで自動デプロイしてみた"
 emoji: "🔰"
 type: "tech"
 topics: ["Docker", "AWS", "デプロイ", "devcontainer", "レスポンシブ"]
@@ -12,17 +12,17 @@ publication_name: "secondselection"
 
 Dockerでアプリを開発し、CI/CDを利用してAWSデプロイまでを行いました。その過程で学んだこと、苦労したことをまとめます。
 これからWebアプリ開発をしてみたい、CI/CDを用いたWebアプリ開発に興味がある方の参考になれば幸いです。
-Dockerについては深ぼれば書くことが無数にあるので、私が抑えておくべきだと考えた点を抜粋しています。
+Dockerについては書くことが無数にあるので、私が抑えておくべきだと考えた点を抜粋しています。
 
-:::details CI/CDとは。
+:::details CI/CD
 
-**CI（Continuous Integration：継続的インテグレーション）**
-コードが共有リポジトリにプッシュされた際に、自動的にビルドとテストを実行するプロセス。品質向上に繋がる。
+**CI（Continuous Integration）**
+コードが共有リポジトリにプッシュされたタイミングで、自動的にビルドとテストを実行するプロセス。品質向上に繋がる。
 
-**CD（Continuous Delivery/Deployment：継続的デリバリー/デプロイメント）**
+**CD（Continuous Delivery/Deployment）**
 CIでテストされたコードを、自動的に本番環境へ反映可能な状態にする、または実際に自動でデプロイするプロセス。
 
-どちらも本来は手動で行っていたものをコードによって自動化する手法です。
+どちらも本来は手動で行っていた作業をコードによって自動化する手法です。
 
 :::
 
@@ -44,19 +44,44 @@ CIでテストされたコードを、自動的に本番環境へ反映可能な
 
 ![alt](/images/docker_web/prod.png)
 
+## 使用したAWSサービス
+
+今回はDockerを重点的に学んだので、AWSについては軽くまとめます。
+
+**ECR**
+コンテナイメージの「保管庫」になります。CIでテストを通してビルドしたイメージを保存します。
+
+**ECS**
+コンテナを管理するサービスです。
+
+**Fargate**
+コンテナを実際に動かすサーバーレスのエンジンになります。ECR上からイメージを取得してコンテナを実行します。
+
+各サービスの詳細は以下記事を参照ください。
+
+https://zenn.dev/secondselection/articles/beginner-aws-ecs#1.-%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB
+
+## コンテナ作成の流れ
+
+Dockerコンテナを動かすまでの流れは、大きく以下の3ステップです。
+
+1. **Dockerfileを作成する** — どんなコンテナを作るかを記述したテキストファイル
+2. **`docker build`でimageを作成する** — Dockerfileを元に、コンテナの「型」となるimageをビルド
+3. **`docker run`でコンテナを起動する** — imageから実際に動くコンテナを生成
+
+![alt](/images/docker_web/docker_flow.png)
+
+次節以降ではDockerfileから順に見ていきます。
+
 ## Dockerfileの作成
 
-コンテナの大本となるDockerfileを作成します。
-
+コンテナの元となるDockerfileを作成します。
 Dockerを利用する一番のメリットは、環境が違っても同じように動作するアプリを作成できることです。
-
 例えばWindows(WSL)上で作成したアプリをMac上でも同じように動作させることができます。
-
 通常は環境の違いを修正する必要がありますが、Dockerによってその手間が省けます。
 
 DockerfileはDocker imageを作成するためのファイルです。
 Docker imageはコンテナを作成するための型になります。
-
 Docker imageを用意する方法は2種類あります。
 1. Docker Hubのようなイメージレジストリからpull
 2. Dockerfileから作成する
@@ -102,7 +127,7 @@ RUN apt update && \
 CMD ["bash"]
 ```
 
-後者のほうがイメージが小さくビルドも高速です。一方で、コマンドの一部を変更するとレイヤー全体が再作成されること、ひとまとまりになることでデバッグが困難になることがデメリットです。
+後者のほうがイメージも小さく、初回ビルドも高速です。一方で、コマンドの一部を変更するとレイヤー全体が再作成されること、ひとまとまりになることでデバッグが困難になることがデメリットです。
 デバッグ時は前者を利用して原因を特定するのが推奨されます。
 
 ![alt](/images/docker_web/layer2.png)
@@ -117,12 +142,45 @@ https://docs.docker.com/build/building/best-practices/
 
 Docker Composeを利用すると、複数コンテナをまとめて管理できます。
 
+例として、APIサーバー（api）とフロントエンド（web）の2コンテナを同時に起動する`compose.yml`を示します。
+
+```yaml
+services:
+  api:
+    container_name: api
+    build:
+      context: ./api
+      target: base
+    ports:
+      - 8080:8080
+    tty: true
+    volumes:
+      - ./api:/workspace:cached
+
+  web:
+    container_name: web
+    build:
+      context: ./web
+      target: base
+    ports:
+      - 3000:3000
+    environment:
+      - REACT_APP_API_SERVER=http://localhost:8080/api
+    tty: true
+    volumes:
+      - ./web:/workspace:cached
+    depends_on:
+      - api
+```
+
+`docker compose up`の一発で両方のコンテナが立ち上がり、`depends_on`によりapiが起動した後にwebが起動します。webからapiへのアクセス先は`environment`で渡しているため、コードに環境依存の値を埋め込まずに済みます。
+
 今回の構成では利用していませんが、DBとWebアプリのコンテナがある場合、このファイルにDBのユーザーとパスワードを登録しておくことで、両方のコンテナで同一の値を利用できます。
 なお、ユーザー名やパスワードは.envから取得するなどの対策が必要です。
 
 ### Docker network
 
-コンテナは環境が隔離されるメリットがある一方で、コンテナ間の通信が難しくなります。
+コンテナは環境を隔離できるメリットがある一方で、コンテナ間の通信が難しいです。
 
 Docker networkを利用することでコンテナ間の通信を実現します。
 
@@ -134,20 +192,44 @@ Docker Composeで作成したコンテナが期待通りに動作することを
 CI/CDを設定することでコードがプッシュされた際にテストやビルド、デプロイが行われます。
 今回のような自動デプロイのほか、ベースイメージに変更がないか確認するために定期的にビルドする、といった活用方法もあります。
 
-## 使用したAWSサービス
+簡単な例として、`main`ブランチへのpushをトリガーに、DockerイメージをビルドしてECRへプッシュするGitHub Actionsのworkflowを示します。
 
-ECR
-コンテナイメージの「保管庫」になります。先述したDocker Hubのような役割で、CIでテストを通してビルドしたイメージを保存します。
+```yaml
+# .github/workflows/build.yml
+name: Build and Push to ECR
 
-ECS
-コンテナを管理するサービスです。
+on:
+  push:
+    branches: [main]
 
-Fargate
-コンテナを実際に動かすサーバーレスのエンジンになります。ECR上からイメージを取得してコンテナを実行します。
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-各サービスの詳細は以下記事を参照ください。
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
 
-https://zenn.dev/secondselection/articles/beginner-aws-ecs#1.-%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: my-app
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+```
+
+リポジトリのSecretsにAWSのアクセスキーを登録しておけば、pushのたびに自動でビルドとプッシュが走ります。デプロイ（CD）まで含める場合は、続けて`aws-actions/amazon-ecs-deploy-task-definition`などを使ってECSのタスク定義を更新します。
 
 ## デプロイされたアプリを確認する
 
@@ -160,7 +242,7 @@ https://zenn.dev/secondselection/articles/beginner-aws-ecs#1.-%E3%81%AF%E3%81%98
 
 苦労した点は主にデプロイ(CI/CD)でした。
 
-1. imageがpullできない
+### 1. imageがpullできない
 
 DockerfileでECR Public Galleryからベースのイメージを利用していたのですが、以下のようなエラーが発生しました。
 
@@ -169,21 +251,21 @@ CannotPullContainerError: pull image manifest has been retried 7 time(s): failed
 ```
 
 原因としてはセキュリティグループのアウトバウンドルールでした。
-HTTPS (443番ポート) を 0.0.0.0/0全開放することで解決しました。
+HTTPS(443番ポート)を0.0.0.0/0に対して全開放することで解決しました。
 
 https://gallery.ecr.aws/
 
-2. パブリックipにアクセスできない→インバウンドルールを変更
+### 2. パブリックipにアクセスできない→インバウンドルールを変更
 
 デプロイ後のパブリックIPにアクセスできない問題が発生しました。
 
-こちらも1と同様にインバウンドルールでHTTP (80番ポート) を 0.0.0.0/0全開放することで解決しました。
+こちらも1と同様に、インバウンドルールのHTTP(80番ポート)を0.0.0.0/0に対して全開放することで解決しました。
 
-3. 指定したimageがない
+### 3. 指定したimageがない
 
-`openjdk:17`をDocker Hubからpullしていましたが、このイメージは削除されておりビルドに失敗しました。ここで代替イメージをAIに質問して鵜呑みにしたのが私の失敗で、提案されたイメージでもビルドに失敗。最終的にイメージを調べ直して解決しました。教訓はイメージの説明をよく読み、既存のイメージと差分がないことを確認することです。
+利用したかったイメージをDocker Hubからpullしようとしましたが、メンテナンスが停止しており実質的に利用できず、ビルドに失敗しました。ここで代替イメージをAIに質問して鵜呑みにしたのが私の失敗で、提案されたイメージでもビルドに失敗。最終的にイメージを調べ直して解決しました。教訓はイメージの説明をよく読み、既存のイメージと差分がないことを確認することです。
 
-4. リージョンの間違い
+### 4. リージョンの間違い
 
 続いてはECR上で作成したリポジトリにイメージをプッシュする際のエラーです。
 
@@ -198,18 +280,17 @@ Error: Process completed with exit code 1.
 
 ## 学んだこと
 
-### 原因の切り分けが最重要
+### 1. 原因の切り分けが最重要
 
 DockerやCI/CD、AWSなど複数のサービスを利用していることで原因の特定が難しかったです。エラーメッセージから推測することで多くは解決しましたが、コンテナのデプロイ時にエラーメッセージが表示されない事象に直面しました。その際にまずローカルでコンテナが正しく動作しているか確認しなおすことで、イメージの問題でビルドに失敗していると特定できました。この経験から、原因の切り分けのためにログやエラーメッセージは必須だと痛感しました。
 
-### イメージは古くなる・消える
+### 2. イメージは古くなる・消える
 
-イメージレジストリから取得している場合、コードが古くてイメージが存在しないことがあります。またイメージ自体が非公開になる場合もあり、コード自体は正しくても動かない事態になりうると学びました。
+イメージレジストリから取得している場合、コードが古くてイメージが存在しない場合もあります。またイメージ自体が非公開になる場合もあり、コード自体は正しくても動かない事態になりうると学びました。
 
-### タイプミス対策はダブルチェック
+### 3. タイプミス対策はダブルチェック
 
-CI/CDの設定にあたって環境変数を多く設定しました。またAWS上のサービス名などタイプミスが発生しうる状況が多くありました。当然ですが、コピペを積極的に活用しダブルチェックすることが重要です。
-
+CI/CDの設定にあたって環境変数を多く設定しました。またAWS上のサービス名などタイプミスが発生しうる状況も多くありました。当然ですが、コピー&ペーストを積極的に活用しダブルチェックすることが重要です。
 
 ## おわりに
 
