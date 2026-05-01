@@ -271,7 +271,7 @@ CannotPullContainerError: pull image manifest has been retried 7 time(s): failed
 HTTPS(443番ポート)を0.0.0.0/0に対して全開放することで解決しました。
 
 学習目的のため0.0.0.0/0で全開放しましたが、本番運用では推奨されません。
-ECRPublicはインターネット経由アクセスが前提のため、より安全な構成にするにはプライベートECRにイメージをミラーした上で、ECR用のVPCエンドポイントを経由してpullする方法が一般的です。
+ECRPublicはインターネット経由アクセスが前提のため、より安全な構成にするには、ECR用のVPCエンドポイントを経由してpullする方法があります。
 こうするとアウトバウンドの全開放が不要になり、通信もAWS内部で完結します。
 
 https://gallery.ecr.aws/
