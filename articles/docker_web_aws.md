@@ -165,7 +165,6 @@ services:
       target: base
     ports:
       - 8080:8080
-    tty: true
     volumes:
       - ./api:/workspace
 
@@ -178,7 +177,6 @@ services:
       - 3000:3000
     environment:
       - REACT_APP_API_SERVER=http://localhost:8080/api
-    tty: true
     volumes:
       - ./web:/workspace
     depends_on:
