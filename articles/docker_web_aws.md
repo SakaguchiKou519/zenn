@@ -4,7 +4,7 @@ emoji: "🔰"
 type: "tech"
 topics: ["Docker", "AWS", "デプロイ", "CICD", "GithubActions"]
 published: true
-published_at: 2026-05-11 06:00
+published_at: 2026-05-13 06:00
 publication_name: "secondselection"
 ---
 
@@ -56,7 +56,7 @@ https://www.udemy.com/course/ok-docker/
 コンテナイメージの「保管庫」になります。CIでテストを通してビルドしたイメージを保存します。
 
 **ECS(Elastic Container Service)**
-コンテナを管理するサービスです。
+コンテナを管理するサービスです。タスク定義という設定ファイルにコンテナイメージや公開ポート、CPU/メモリなどを記述することで、複数のコンテナをまとめてデプロイできます。
 
 **Fargate**
 コンテナを実際に動かすサーバーレスのエンジンになります。ECR上からイメージを取得してコンテナを実行します。
@@ -154,6 +154,7 @@ https://docs.docker.com/build/building/best-practices/
 Docker Composeを利用すると、複数コンテナをまとめて管理できます。
 
 例として、APIサーバー（api）とフロントエンド（web）の2コンテナを同時に起動する`compose.yml`を示します。
+こちらは開発環境用の構成になります。本番は別途ECSタスク定義でデプロイを行います。
 
 ```yaml
 services:
@@ -166,7 +167,7 @@ services:
       - 8080:8080
     tty: true
     volumes:
-      - ./api:/workspace:cached
+      - ./api:/workspace
 
   web:
     container_name: web
@@ -179,7 +180,7 @@ services:
       - REACT_APP_API_SERVER=http://localhost:8080/api
     tty: true
     volumes:
-      - ./web:/workspace:cached
+      - ./web:/workspace
     depends_on:
       - api
 ```
@@ -189,14 +190,6 @@ services:
 今回の構成では利用していませんが、DBとWebアプリのコンテナがある場合、このファイルにDBのユーザーとパスワードを登録しておくことで、両方のコンテナで同一の値を利用できます。
 なお、ユーザー名やパスワードは.envから取得するなどの対策が必要です。
 `depends_on`の注意点としてコンテナの起動順を保証するだけでDBへの接続を保証しないことです。DBへの接続を保証したい場合は、`healthcheck`やアプリから接続失敗時にリトライする処理を入れることが有効です。
-
-### Docker network
-
-コンテナは環境を隔離できるメリットがある一方で、コンテナ間の通信が難しいです。
-
-Docker networkを利用することでコンテナ間の通信を実現します。
-
-Docker Composeで作成したコンテナが期待通りに動作することを確認できたら、GitHub Actionsを利用してデプロイします。
 
 ## CI/CDを設定する
 
@@ -249,6 +242,11 @@ jobs:
 
 リポジトリのSecretsにAWSのアクセスキーを登録しておけば、pushのたびに自動でビルドとプッシュが走ります。デプロイ（CD）まで含める場合は、続けて`aws-actions/amazon-ecs-deploy-task-definition`などを使ってECSのタスク定義を更新します。
 
+本番環境では以下の2コンテナをデプロイしました。
+
+- **webコンテナ**: nginxでビルド済みReactを配信。`containerPort: 80`
+- **apiコンテナ**: APIサーバー。`containerPort: 8080`
+
 ## デプロイされたアプリを確認する
 
 デプロイされたアプリを確認します。
@@ -269,7 +267,12 @@ CannotPullContainerError: pull image manifest has been retried 7 time(s): failed
 ```
 
 原因としてはセキュリティグループのアウトバウンドルールでした。
+アウトバウンドルールは内部からどのような通信を許可するかの設定になります。
 HTTPS(443番ポート)を0.0.0.0/0に対して全開放することで解決しました。
+
+学習目的のため0.0.0.0/0で全開放しましたが、本番運用では推奨されません。
+ECRPublicはインターネット経由アクセスが前提のため、より安全な構成にするにはプライベートECRにイメージをミラーした上で、ECR用のVPCエンドポイントを経由してpullする方法が一般的です。
+こうするとアウトバウンドの全開放が不要になり、通信もAWS内部で完結します。
 
 https://gallery.ecr.aws/
 
@@ -277,7 +280,11 @@ https://gallery.ecr.aws/
 
 デプロイ後のパブリックIPにアクセスできない問題が発生しました。
 
-こちらも1と同様に、インバウンドルールのHTTP(80番ポート)を0.0.0.0/0に対して全開放することで解決しました。
+本番webコンテナはnginxが80で待ち受けているため、80番ポートを開放するインバウンドルールのHTTP(80番ポート)を0.0.0.0/0に対して全開放することで解決しました。
+
+インバウンドルールはアウトバウンドと違い、外部からこのリソースへの接続を制御します。
+80番や443番を0.0.0.0/0に開放すると、世界中からアクセス可能になり、不正アクセスや攻撃の対象になり得ます。
+本番運用では通信元のIPアドレスや範囲のみからの接続を許可する設定が推奨されます。
 
 ### 3. 指定したimageがない
 
