@@ -1,5 +1,5 @@
 ---
-title: "DockerアプリをGitHub Actions × AWS Fargateで自動デプロイしてみた"
+title: "【初心者向け】Docker × GitHub Actions × AWS FargateでCI/CDデプロイに挑戦してみた"
 emoji: "🔰"
 type: "tech"
 topics: ["Docker", "AWS", "デプロイ", "CICD", "GithubActions"]
@@ -12,7 +12,7 @@ publication_name: "secondselection"
 
 Dockerでアプリを開発し、CI/CDを利用してAWSデプロイまでを行いました。その過程で学んだこと、苦労したことをまとめます。
 これからWebアプリ開発をしてみたい、CI/CDを用いたWebアプリ開発に興味がある方の参考になれば幸いです。
-Dockerについては書くことが無数にあるので、私が抑えておくべきだと考えた点を抜粋しています。
+Dockerについては書くことが無数にあるので、私が押さえておくべきだと考えた点を抜粋しています。
 
 :::details CI/CD
 
