@@ -1,5 +1,5 @@
 ---
-title: "WSL2でk3sに入門しよう！（サンプルコード付き）"
+title: "【入門】WSL2でk3sに触れてみよう！（サンプルコード付き）"
 emoji: "🗄️"
 type: "tech"
 topics: ["k3s", "k8s","docker", "wsl2"]
@@ -33,11 +33,11 @@ Kubernetesをエッジ／IoT向けに軽量化した、Kubernetesディストリ
 
 名前の由来も面白いので、引用しておきます。
 
-> Kubernetesの一般的な短縮形が「K8s」であることから、それをもじって「K3s」と命名されました。8K3sという言葉は、K3sの要件である「K8sから5つの要素を変更（削除）して軽量化（した」ことを表します。
+> Kubernetesの一般的な短縮形が「K8s」であることから、それをもじって「K3s」と命名されました。8はkとsの間の文字数（k「ubernete」s）を表します。K3sという言葉は、K3sの要件である「K8sから5つの要素を変更（削除）して軽量化（5 less than K8s）した」ことを表すために、Kubernetesの文字の総数（10）を半分に割り、8を3に置き換えました。
 
 https://www.sysdig.com/jp/learn-cloud-native/what-is-k3s
 
-### k8sの構成について
+### k8sとは
 
 ハンズオン前に、Kubernetes(以降k8s)について説明します。
 k8sの最大の特徴は、**あるべき状態をマニフェストファイル（YAML）で宣言し、その状態を維持し続ける**ことです。
@@ -47,7 +47,7 @@ k8sの最大の特徴は、**あるべき状態をマニフェストファイル
 スケーリングを前提とした仕組みのため、コントロールプレーンが複数のワーカーノードを管理します。
 
 コントロールプレーンは複数のコンポーネントから成り立っていますが、はじめは「コントロールプレーンが指示を出し、ワーカーノードが実際にコンテナを動かす」という理解で十分です。
-また、本記事ではコントロールプレーンとワーカーノードが1つのノードに収められるシングルノードで進めます。シングルノードを利用することで通常は複数のコンピューターが必要なk8sを1台のコンピューターで動作確認することが出来ます。1台でもVMを利用すれば可能ではありますが。
+また、本記事ではコントロールプレーンとワーカーノードが1つのノードに収められるシングルノードで進めます。シングルノードを利用することで通常は複数のコンピューターが必要なk8sを1台のコンピューターで動作確認することが出来ます。1台でもVMを利用すれば可能ではあります。
 
 参考記事
 https://qiita.com/tadashiro_ninomiya/items/6e6fea807b2a16732b5b#kubernetes%E3%81%A8%E3%81%AF
@@ -78,7 +78,7 @@ chmod 600 ~/.kube/config
 ```
 
 k3sは接続情報（APIのリクエスト先）を`/etc/rancher/k3s/k3s.yaml`にroot専用（600）で作成します。
-そのままだと一般ユーザーが操作するたびにsudoが必要になります。`~/.kube/config`は後述のkubectlコマンドが自動で読みに行く場所なので、ここにユーザー権限でコピーしておけばsudoなしで操作できるようになります。
+デフォルトでは一般ユーザーが操作するたびにsudoが必要になります。`~/.kube/config`は後述のkubectlコマンドが自動で読みに行く場所なので、ここにユーザー権限でコピーしておけばsudoなしで操作できるようになります。
 
 パーミッションを緩めて共有する方法もありますが、このファイルは**クラスター管理者に相当する権限を持った接続情報**です。
 複数人が触るサーバーや本番のクラスターでは、用途ごとに権限を制限した接続情報を配る、といった対応が必要になります。
@@ -95,11 +95,11 @@ cat /etc/rancher/k3s/k3s.yaml
 server: https://127.0.0.1:6443
 ```
 
-kubectlのAPIサーバーにリクエストを送ります。
+kubectlはこのserverに書かれたAPIサーバーへリクエストを送ります。
 
 ## kubectlコマンドを打ってみる
 
-kubectlは、k3sクラスターを操作するためのCLIツールです。k3sインストールスクリプトに内包されており、追加のインストールなしで`kubectl`単体で実行できます（`k3s kubectl`と書いても同じ動作です）。イメージとしては`docker ps`のような使い方になります。
+kubectlは、k3sクラスターを操作するためのCLIツールです。k3sインストールスクリプトに内包されており、追加のインストールなしで`kubectl`単体で実行できます（`k3s kubectl`と書いても同じ動作です）。イメージとしてはdockerコマンドのような位置づけになります。
 まずはノードの一覧を見てみましょう。
 
 ```bash
@@ -110,7 +110,7 @@ kubectl get nodes
 
 ```bash
 NAME         STATUS   ROLES           AGE   VERSION
-wsl-ubuntu   Ready    control-plane   1d   v1.35.5+k3s1
+wsl-ubuntu   Ready    control-plane   2d    v1.35.5+k3s1
 ```
 
 通常は2台以上で構成しますが、1台のノードがコントロールプレーンとワーカーノードを兼ねている状態です。
@@ -194,7 +194,7 @@ NAME         READY   STATUS    RESTARTS   AGE    IP            NODE         NOMI
 whoami-pod   1/1     Running   0          4m2s   10.42.0.150   wsl-ubuntu   <none>           <none>
 ```
 
-Podにリクエストを送ってみましょう。IP欄に出ているIPにリクエストします。
+Podにリクエストを送ってみましょう。IP欄に出ているIPをコピー&ペーストしてリクエストします。
 
 ```
 curl -i http://<IPアドレス>:80
@@ -227,15 +227,17 @@ Podが起動しtraefik/whoamiのイメージでコンテナが正常に動作し
 kubectl delete pod whoami-pod
 ```
 
+レスポンス
 ```
 pod "whoami-pod" deleted from k3s-tutorial namespace
 ```
 
-消えていることを確認します。
+Podが消えていることを確認します。Podが削除されたことを覚えていてください。
 ```
 kubectl get pods
 ```
 
+レスポンス
 ```
 No resources found in k3s-tutorial namespace.
 ```
@@ -253,7 +255,7 @@ Podを直接作成した場合、削除されても作り直してくれませ�
 
 実際の運用ではPodを直接作ることはほとんどなく、Deployment経由で作成します。
 
-実際に体験してみましょう。先ほどと同じPodを、Deployment経由で作り直します。
+それでは体験してみましょう。先ほどと同じPodを、２つDeployment経由で作り直します。
 
 ```bash
 cat << 'EOF' > whoami-deploy.yaml
@@ -308,24 +310,26 @@ whoami-deploy-7c9f8b6d54-h4rjt   1/1     Running   0          32s   10.42.0.152 
 
 Pod名がランダムな文字列付きになっているのがポイントです。Deployment（とReplicaSet）が自動で名前を振るため、こちらでPod名を決めることはありません。
 
-### 落としても復活することを確認する
+### Podを削除しても復活することを確認する
 
-せっかくなので、Deploymentのメリットを体験してみましょう。Podを1つ削除します。
+せっかくなので、Deploymentのメリットを体験してみましょう。出力されたPod名をコピー&ペーストして1つ削除します。
 
 ```bash
-kubectl delete pod whoami-deploy-7c9f8b6d54-2xq7m
+kubectl delete pod <Pod名>
+```
+
+```bash
 kubectl get pods
 ```
 
-```
+```txt
 ubuntu@wsl-ubuntu:~/k3s-tutorial$ kubectl get pods
 NAME                             READY   STATUS    RESTARTS   AGE
 whoami-deploy-7c9f8b6d54-h4rjt   1/1     Running   0          2m10s
 whoami-deploy-7c9f8b6d54-w8kzd   1/1     Running   0          5s
 ```
 
-消したはずなのに2つあります。名前が違う新しいPod（`w8kzd`）が作られ、AGEも数秒前になっていますね。IPが変わっていることも確認できます。
-「2つ動かす」という宣言が守られるよう、システム側が自動で作り直した結果です。これにより、本番環境でPodが落ちた場合でも自動的に復活します。
+消したはずなのにPodが2つあります。このように「Podを2つ動かす」という宣言を守ることがDeploymentの役割です。これにより、本番環境でPodが落ちた場合でも自動的に復活します。厳密にはPodは一度削除されて、新しいPodが自動で作成されるという動きになります。
 
 ### 数を増やしてみる
 
@@ -341,8 +345,8 @@ kubectl get pods
 ubuntu@wsl-ubuntu:~/k3s-tutorial$ kubectl get pods
 NAME                             READY   STATUS    RESTARTS   AGE
 whoami-deploy-7c9f8b6d54-h4rjt   1/1     Running   0          4m30s
-whoami-deploy-7c9f8b6d54-w8kzd   1/1     Running   0          2m25s
 whoami-deploy-7c9f8b6d54-qv6tp   1/1     Running   0          4s
+whoami-deploy-7c9f8b6d54-w8kzd   1/1     Running   0          2m25s
 ```
 
 足りない1つだけが追加され、既存のPodはそのまま動き続けています。次のServiceで使うため、`replicas`は3のまま進めます。
@@ -357,21 +361,20 @@ Serviceには4種類のタイプがありますが、入門時は上3つを押�
 
 | タイプ | 概要 | 主な用途 |
 | --- | --- | --- |
-| ClusterIP | クラスター内部だけで使える仮想IPを払い出し、複数Podのエンドポイントを束ねる | クラスター内のPod間通信（既定値） |
+| ClusterIP | クラスター内部だけで使える仮想IPを払い出し、複数Podのエンドポイントを束ねる | クラスター内のPod間通信 |
 | NodePort | 各ノードのポート（30000〜32767）を開放する | ノード経由での動作確認 |
 | LoadBalancer | ロードバランサー経由で公開する | 外部公開・負荷分散 |
 | ExternalName | 外部のDNS名へ橋渡しする（Podは選択しない） | クラスター外のサービス参照 |
 
-上の3つには親子関係があり、LoadBalancerを作成するとNodePortとClusterIPが、NodePortを作成するとClusterIPが内部的に作られます。
+上の3つには親子関係があり、LoadBalancerを作成するとNodePortとClusterIPが、NodePortを作成するとClusterIPが連動して作られます。
 
 ローカルでの動作確認であればClusterIPやNodePortで事足ります。
-なお、k3sには`ServiceLB`というロードバランサーが標準で組み込まれているため、クラウドでなくてもLoadBalancerがそのまま動きます。
 
 また、Serviceは`protocol`で接続方式を指定できます。
 
 | protocol | 補足 |
 | --- | --- |
-| TCP | 既定値。HTTP/HTTPSもこの上で動く |
+| TCP | デフォルト。HTTP/HTTPSもこの上で動く |
 | UDP | DNSなど |
 | SCTP | 対応環境が限られる |
 
@@ -413,15 +416,15 @@ NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
 whoami-svc   ClusterIP   10.43.180.42    <none>        80/TCP    8s
 ```
 
-`CLUSTER-IP`に払い出された仮想IPが、固定の接続先になります。実際に振り分け先となっているPodは以下で確認できます。
+`CLUSTER-IP`に払い出された仮想IPが、固定の接続先になります。あとの工程で利用します。実際に振り分け先となっているPodは以下で確認できます。
 
 ```bash
 kubectl get endpoints whoami-svc
 ```
 
-```
-ubuntu@wsl-ubuntu:~/k3s-tutorial$ kubectl get endpoints whoami-svc
-NAME         ENDPOINTS                                      AGE
+レスポンス
+```text
+NAME         ENDPOINTS                             AGE
 whoami-svc   10.42.0.151:80,10.42.0.153:80,10.42.0.154:80   25s
 ```
 
@@ -430,13 +433,14 @@ whoami-svc   10.42.0.151:80,10.42.0.153:80,10.42.0.154:80   25s
 ### 振り分けられていることを確認する
 
 このIPに何度かリクエストを送ってみます。whoamiは自分のホスト名（＝Pod名）を返してくれるので、振り分けの様子がそのまま見えます。
+curlが失敗する場合は、少し待ってから試してください。
 
 ```bash
-for i in $(seq 1 6); do curl -s http://10.43.180.42 | grep Hostname; done
+for i in $(seq 1 6); do curl -s http://<CLUSTER-IP> | grep Hostname; done
 ```
 
+レスポンス
 ```
-ubuntu@wsl-ubuntu:~/k3s-tutorial$ for i in $(seq 1 6); do curl -s http://10.43.180.42 | grep Hostname; done
 Hostname: whoami-deploy-7c9f8b6d54-h4rjt
 Hostname: whoami-deploy-7c9f8b6d54-qv6tp
 Hostname: whoami-deploy-7c9f8b6d54-w8kzd
@@ -445,27 +449,28 @@ Hostname: whoami-deploy-7c9f8b6d54-qv6tp
 Hostname: whoami-deploy-7c9f8b6d54-w8kzd
 ```
 
-同じIPを叩いているのに、応答するPodが入れ替わっています。正直、ここが一番「おお」となるところだと思います。
+同じIPを叩いているのに、応答するPodが入れ替わっています。
+ここで注意したいのが、**順番に1つずつ回るのではなく、ランダムに振り分けられる**という点です。
+この仕組みによりリクエスト負荷が分散されます。
 
 ### Podを作り直しても接続先が変わらないことを確認する
 
 Podを1つ消してから、もう一度同じIPにリクエストしてみます。
 
 ```bash
-kubectl delete pod whoami-deploy-7c9f8b6d54-h4rjt
-curl -s http://10.43.180.42 | grep Hostname
+kubectl delete pod <任意のPod名>
+curl -s http://<CLUSTER-IP> | grep Hostname
 ```
 
 ```
-ubuntu@wsl-ubuntu:~/k3s-tutorial$ curl -s http://10.43.180.42 | grep Hostname
 Hostname: whoami-deploy-7c9f8b6d54-n5jzc
 ```
 
 Podは新しいものに入れ替わり、IPも変わっているはずですが、こちらが叩くIPは`10.43.180.42`のまま変わりません。Podを直接指定していた頃に発生していた「作り直すたびにIPを調べ直す」手間が、これで解消されます。
 
-なお、ClusterIPはクラスター内部専用のIPです。ここまでのcurlがすべてUbuntu上から実行できていたのはそのためで、Windows側のブラウザからは届きません。最後に、外部から接続できるようにしてゴールを目指します。
+なお、ClusterIPはクラスター内部専用のIPです。ここまでのcurlがすべてUbuntu上から実行できていたのは、Ubuntu自体がクラスターのノードになっているためです。次は、ノードのPortを開放して接続してみます。
 
-## 外部から接続する
+## ノードのPort経由で接続する
 
 ClusterIPをNodePortに変更します。NodePortは、クラスター内の各ノードのPort（30000〜32767）を開放し、そこへ来た通信をServiceへ流す仕組みです。
 先ほどのマニフェストを、2行だけ書き換えます。
@@ -504,31 +509,27 @@ whoami-svc   NodePort   10.43.180.42    <none>        80:30080/TCP   12m
 
 `PORT(S)`が`80:30080/TCP`になりました。ClusterIPの`10.43.180.42`はそのまま残っている点にも注目してください。先述の親子関係の通り、NodePortの内部にはClusterIPが作られています。
 
-まずはUbuntu上から、ノードのPort経由で叩いてみます。
+Ubuntu上から、ノードのPort経由で叩いてみます。ClusterIPのときと違い、指定するのはノード自身のアドレスとPortです。
 
 ```bash
 curl -s http://localhost:30080 | grep Hostname
 ```
 
+レスポンス
 ```
-ubuntu@wsl-ubuntu:~/k3s-tutorial$ curl -s http://localhost:30080 | grep Hostname
-Hostname: whoami-deploy-7c9f8b6d54-qv6tp
-```
-
-そのままWindows側のブラウザで`http://localhost:30080`を開いてみてください。WSL2はLinux側で待ち受けているPortをWindowsのlocalhostへ転送してくれるため、追加設定なしでwhoamiのレスポンスが表示されるはずです。
-
-```
-Hostname: whoami-deploy-7c9f8b6d54-qv6tp
+Hostname: whoami-deploy-7cc8b8c9b-9jbp4
 IP: 127.0.0.1
-IP: 10.42.0.153
-RemoteAddr: 10.42.0.1:52134
+IP: ::1
+IP: 10.42.0.2
+IP: fe80::f8b5:ecff:fe79:392
+RemoteAddr: 10.42.0.1:32513
 GET / HTTP/1.1
 Host: localhost:30080
-User-Agent: Mozilla/5.0 ...
+User-Agent: curl/8.5.0
+Accept: */*
 ```
 
 「簡易アプリにHTTP接続をしてレスポンスが返る」という当初のゴールに到達しました。
-リロードするたびに`Hostname`が入れ替わるので、ブラウザからでも振り分けの様子が確認できます。
 
 ## 後片付け
 
@@ -541,4 +542,14 @@ kubectl delete namespace k3s-tutorial
 
 ## おわりに
 
-todo
+いかがでしたでしょうか。
+本記事では、以下の4つのリソースを実際に動かしながら触ってきました。
+
+- **namespace**：クラスター内部を仮想的に区切り、まとめて片付けられるようにする
+- **Pod**：Kubernetesの最小単位。使い捨てで、作り直すたびにIPが変わる
+- **Deployment**：宣言した数のPodを維持し、落ちても自動で作り直す
+- **Service**：変わり続けるPodへの接続先を固定し、リクエストを振り分ける
+
+一方で、Serviceの節で触れた「`/api`はこのPodへ」のようなURLベースの振り分けは長くなってしまうので今回は扱いませんでした。これを担うのがIngressというリソースです。
+
+私はk8sがなんとなく難しそうだという印象を触る前は持っていましたが、実際に動かしてみることでk8sへの理解が深まり、少し抵抗が減りました。もちろん本番運用には程遠いですが、入門として概要を掴める記事になっていれば幸いです。
