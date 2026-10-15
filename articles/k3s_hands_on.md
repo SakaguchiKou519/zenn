@@ -4,7 +4,7 @@ emoji: "🗄️"
 type: "tech"
 topics: ["k3s", "k8s","docker", "wsl2"]
 published: true
-published_at: 2026-09-21 06:00
+published_at: 2026-10-26 06:00
 publication_name: "secondselection"
 ---
 
@@ -109,7 +109,7 @@ k3sは接続情報（APIのリクエスト先）を`/etc/rancher/k3s/k3s.yaml`�
 情報を確認するとserverの値にリクエスト先が記載されていることを確認できます。
 
 ```bash
-cat /etc/rancher/k3s/k3s.yaml
+cat ~/.kube/config
 ```
 
 **実行結果（一部抜粋）**
