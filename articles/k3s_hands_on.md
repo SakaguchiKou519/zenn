@@ -140,7 +140,7 @@ wsl-ubuntu   Ready    control-plane   2d    v1.35.5+k3s1
 
 ## 今回作成する構成
 
-ハンズオンに入る前に、今回作成する構成の全体像を示します。
+ハンズオンの前に、今回作成する構成の全体像を示します。
 
 ![Ubuntuの中にnamespaceを作り、その中にService・Deployment・Podを配置する全体像の図](/images/k3s_manual.md/overview.png)
 
@@ -543,7 +543,7 @@ Hostname: whoami-deploy-7c9f8b6d54-w8kzd
 
 ### Podを作り直しても接続先が変わらないことを確認する
 
-Podを1つ消してから、もう一度同じIPにリクエストしてみます。`<任意のPod名>`には、`kubectl get pods`で表示されたPod名のうち1つ（例：`whoami-deploy-7c9f8b6d54-h4rjt`）を、`<CLUSTER-IP>`には先ほどと同じIPを指定します。
+Podを1つ消してから、もう一度同じIPにリクエストしてみます。`<任意のPod名>`には、`kubectl get pods`で表示されたPod名のうち1つを、`<CLUSTER-IP>`には先ほどと同じIPを指定します。
 
 ```bash
 kubectl delete pod <任意のPod名>
